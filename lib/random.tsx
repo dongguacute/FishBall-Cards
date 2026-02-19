@@ -15,7 +15,7 @@ export function generateRandomCredit(
   multiplier: number = 1
 ): number {
   if (!max) {
-    throw new Error('MaxCredit is empty');
+    return 0;
   }
 
   const baseMax = parseInt(max, 10);
@@ -25,7 +25,7 @@ export function generateRandomCredit(
   const actualMax = Math.min(multiplier, baseMax);
 
   if (actualMax < min) {
-    throw new Error('MaxCredit is empty');
+    return 0;
   }
 
   const randomValue = Math.floor(Math.random() * (actualMax - min + 1)) + min;

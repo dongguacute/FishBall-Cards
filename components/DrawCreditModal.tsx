@@ -45,15 +45,16 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ student, isOpe
           },
           dropRate
         );
-        console.log('抽奖成功, 获得:', value);
-        setDrawnValue(value);
+        
+        if (value === 0) {
+          setError('卡没了');
+        } else {
+          console.log('抽奖成功, 获得:', value);
+          setDrawnValue(value);
+        }
       } catch (err: any) {
         console.error('抽取积分失败:', err);
-        if (err.message === 'MaxCredit is empty') {
-          setError('卡没了a');
-        } else {
-          setError('抽取失败，请重试');
-        }
+        setError('抽取失败，请重试');
       } finally {
         setIsDrawing(false);
       }
