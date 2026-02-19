@@ -15,17 +15,29 @@ export function generateRandomCredit(
   multiplier: number = 1
 ): number {
   if (!max) {
-    throw new Error('MaxCredit is not set');
+    throw new Error('MaxCredit is empty');
   }
 
   const baseMax = parseInt(max, 10);
-  const randomValue = Math.floor(Math.random() * (multiplier - min + 1)) + min;
+  
+  // 爆率随机数必须小于等于卡片现有总数
+  // 实际抽取的最大值应该是 multiplier 和 baseMax 之间的较小值
+  const actualMax = Math.min(multiplier, baseMax);
+
+  if (actualMax < min) {
+    throw new Error('MaxCredit is empty');
+  }
+
+  const randomValue = Math.floor(Math.random() * (actualMax - min + 1)) + min;
   
   // 计算积分卡剩余数量并保存
   const remainingCredit = baseMax - randomValue;
+  
+  // 注意：这里我们不再直接向 localStorage 写入 fishball-cards-count
+  // 因为在 DrawCreditModal 中我们是基于 (总卡片数 - 已领积分) 计算的
+  // 这里的 baseMax 已经是计算后的“剩余值”了
+  
   try {
-    localStorage.setItem('fishball-cards-count', remainingCredit.toString());
-    
     // 如果提供了成功回调，则调用它
     if (onSuccess) {
       onSuccess(remainingCredit);

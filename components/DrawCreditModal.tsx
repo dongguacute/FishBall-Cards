@@ -14,28 +14,46 @@ interface DrawCreditModalProps {
 
 export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ student, isOpen, onClose }) => {
   const { cardCount, updateCardCount, dropRate } = useSettings();
-  const { updateStudentCredit } = useStudents();
+  const { updateStudentCredit, students } = useStudents();
   const [drawnValue, setDrawnValue] = useState<number | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen || !student) return null;
 
   const handleDraw = () => {
     setIsDrawing(true);
+    setError(null);
+
+    // 计算当前所有学生已领取的积分总和
+    const totalUsedCredits = students.reduce((acc, s) => acc + (s.credit || 0), 0);
+    // 真正的剩余可用积分 = 总卡片数 - 已领取积分
+    const actualRemaining = Math.max(0, cardCount - totalUsedCredits);
+
     // 模拟抽取动画效果
     setTimeout(() => {
       try {
+        console.log('开始抽奖, cardCount(总):', cardCount, '已用:', totalUsedCredits, '剩余:', actualRemaining, 'dropRate:', dropRate);
         const value = generateRandomCredit(
           1, 
-          cardCount.toString(), 
+          actualRemaining.toString(), 
           student, 
           updateStudentCredit,
-          undefined,
+          (newRemaining) => {
+            // 这里我们不需要更新 cardCount，因为 cardCount 在 settings 中是总数
+            // 但我们需要确保这个逻辑是闭环的
+          },
           dropRate
         );
+        console.log('抽奖成功, 获得:', value);
         setDrawnValue(value);
-      } catch (error) {
-        console.error('抽取积分失败:', error);
+      } catch (err: any) {
+        console.error('抽取积分失败:', err);
+        if (err.message === 'MaxCredit is empty') {
+          setError('卡没了a');
+        } else {
+          setError('抽取失败，请重试');
+        }
       } finally {
         setIsDrawing(false);
       }
@@ -44,6 +62,7 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ student, isOpe
 
   const handleClose = () => {
     setDrawnValue(null);
+    setError(null);
     onClose();
   };
 
@@ -65,6 +84,11 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ student, isOpe
                 <div className="w-3 h-3 bg-zinc-900 dark:bg-zinc-100 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                 <div className="w-3 h-3 bg-zinc-900 dark:bg-zinc-100 rounded-full animate-bounce"></div>
               </div>
+            ) : error ? (
+              <div className="animate-in fade-in zoom-in duration-300 text-center">
+                <div className="text-4xl mb-2">😅</div>
+                <p className="text-red-500 font-bold">{error}</p>
+              </div>
             ) : drawnValue !== null ? (
               <div className="animate-in zoom-in duration-300">
                 <span className="text-6xl font-black text-zinc-900 dark:text-zinc-100">
@@ -79,7 +103,7 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ student, isOpe
           </div>
 
           <div className="flex flex-col gap-3">
-            {drawnValue === null ? (
+            {drawnValue === null && !error ? (
               <button
                 onClick={handleDraw}
                 disabled={isDrawing}
@@ -92,11 +116,11 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ student, isOpe
                 onClick={handleClose}
                 className="w-full py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
               >
-                太棒了！
+                {error ? '好吧' : '太棒了！'}
               </button>
             )}
             
-            {!isDrawing && drawnValue === null && (
+            {!isDrawing && drawnValue === null && !error && (
               <button
                 onClick={onClose}
                 className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
