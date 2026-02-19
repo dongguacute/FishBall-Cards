@@ -1,13 +1,22 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useStudents } from '@/lib/store';
+import { DrawCreditModal } from './DrawCreditModal';
+import { Student } from '@/lib/types';
 
 export const StudentList: React.FC = () => {
   const { students, selectedClass, setSelectedClass, filteredStudents, removeStudent } = useStudents();
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [isDrawModalOpen, setIsDrawModalOpen] = useState(false);
 
   // 获取所有唯一的班级
   const allClasses = Array.from(new Set(students.map(student => student.class)));
+
+  const handleStudentClick = (student: Student) => {
+    setSelectedStudent(student);
+    setIsDrawModalOpen(true);
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -55,7 +64,8 @@ export const StudentList: React.FC = () => {
           filteredStudents.map(student => (
             <div
               key={student.id}
-              className="bg-white dark:bg-zinc-900 rounded-xl p-4 border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-shadow"
+              onClick={() => handleStudentClick(student)}
+              className="bg-white dark:bg-zinc-900 rounded-xl p-4 border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.98]"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -65,12 +75,20 @@ export const StudentList: React.FC = () => {
                   <p className="text-zinc-500 dark:text-zinc-400 text-sm">
                     {student.class}
                   </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                      积分：{student.credit || 0}
+                    </span>
+                  </div>
                   <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-2">
                     {student.createdAt.toLocaleDateString('zh-CN')}
                   </p>
                 </div>
                 <button
-                  onClick={() => removeStudent(student.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeStudent(student.id);
+                  }}
                   className="text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1"
                   title="删除学生"
                 >
@@ -97,6 +115,13 @@ export const StudentList: React.FC = () => {
           ))
         )}
       </div>
+
+      {/* 抽取积分弹窗 */}
+      <DrawCreditModal
+        isOpen={isDrawModalOpen}
+        student={selectedStudent}
+        onClose={() => setIsDrawModalOpen(false)}
+      />
     </div>
   );
 };

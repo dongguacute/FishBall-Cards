@@ -11,6 +11,7 @@ interface SettingsContextType {
   // 卡片数量
   cardCount: number;
   setCardCount: (count: number) => void;
+  updateCardCount: (count: number) => void;
   isCardCountSet: boolean;
   resetSettings: () => void;
 }
@@ -89,6 +90,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [cardCount, setCardCountState] = useState<number>(10);
   const [isCardCountSet, setIsCardCountSet] = useState<boolean>(false);
 
+  const handleStorageUpdate = () => {
+    const count = loadCardCountFromStorage();
+    setCardCountState(count <= 0 ? 10 : count);
+  };
+
   // 初始化设置
   useEffect(() => {
     const darkMode = loadDarkModeFromCookie();
@@ -96,8 +102,15 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const isSet = localStorage.getItem(IS_CARD_COUNT_SET_KEY) === 'true';
 
     setIsDarkMode(darkMode);
-    setCardCountState(count);
+    // 初始化时，如果卡片数量为 0 或 -1，强制设为 10
+    const finalCount = count <= 0 ? 10 : count;
+    setCardCountState(finalCount);
     setIsCardCountSet(isSet);
+
+    // 如果初始化发现是非法值，同步回存储
+    if (count <= 0) {
+      saveCardCountToStorage(10);
+    }
 
     // 应用主题到文档
     if (darkMode) {
@@ -107,6 +120,14 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       document.documentElement.classList.remove('dark');
       document.documentElement.style.colorScheme = 'light';
     }
+
+    window.addEventListener('storage-settings-updated', handleStorageUpdate);
+    window.addEventListener('storage', handleStorageUpdate); // 监听跨标签页更新
+
+    return () => {
+      window.removeEventListener('storage-settings-updated', handleStorageUpdate);
+      window.removeEventListener('storage', handleStorageUpdate);
+    };
   }, []);
 
   // 切换明暗模式
@@ -135,6 +156,14 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  // 内部更新卡片数量（用于回收积分等逻辑，不改变 isCardCountSet 状态）
+  const updateCardCount = (count: number) => {
+    setCardCountState(count);
+    saveCardCountToStorage(count);
+    // 触发一个自定义事件，通知其他可能的监听者
+    window.dispatchEvent(new Event('storage-settings-updated'));
+  };
+
   const resetSettings = () => {
     setCardCountState(10);
     setIsCardCountSet(false);
@@ -147,6 +176,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     toggleDarkMode,
     cardCount,
     setCardCount,
+    updateCardCount,
     isCardCountSet,
     resetSettings,
   };

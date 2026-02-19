@@ -2,11 +2,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Student } from './types';
+import { useSettings } from './settings';
 
 interface StudentContextType {
   students: Student[];
   addStudent: (name: string, studentClass: string) => void;
   removeStudent: (id: string) => void;
+  updateStudentCredit: (id: string, newCredit: number) => void;
   clearAllData: () => void;
   selectedClass: string;
   setSelectedClass: (className: string) => void;
@@ -48,6 +50,7 @@ const saveStudentsToStorage = (students: Student[]) => {
 export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>('全部');
+  const { cardCount, updateCardCount } = useSettings();
 
   // 初始化时从 localStorage 加载数据
   useEffect(() => {
@@ -78,6 +81,16 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   };
 
+  const updateStudentCredit = (id: string, newCredit: number) => {
+    setStudents(prev => {
+      const updatedStudents = prev.map(student =>
+        student.id === id ? { ...student, credit: newCredit } : student
+      );
+      saveStudentsToStorage(updatedStudents);
+      return updatedStudents;
+    });
+  };
+
   const clearAllData = () => {
     setStudents([]);
     localStorage.removeItem(STUDENTS_STORAGE_KEY);
@@ -92,6 +105,7 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     students,
     addStudent,
     removeStudent,
+    updateStudentCredit,
     clearAllData,
     selectedClass,
     setSelectedClass,
