@@ -143,8 +143,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setIsCardCountSet(isSet);
     setDropRateState(rate);
 
-    // 如果初始化发现是非法值，同步回存储
-    if (count <= 0) {
+    // 如果初始化发现是非法值，且已经设置过，同步回存储
+    if (isSet && count <= 0) {
       saveCardCountToStorage(10);
     }
 

@@ -13,7 +13,7 @@ interface DrawCreditModalProps {
 }
 
 export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ student, isOpen, onClose }) => {
-  const { cardCount, updateCardCount, dropRate } = useSettings();
+  const { cardCount, updateCardCount, dropRate, isCardCountSet } = useSettings();
   const { updateStudentCredit, students } = useStudents();
   const [drawnValue, setDrawnValue] = useState<number | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -22,6 +22,10 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ student, isOpe
   if (!isOpen || !student) return null;
 
   const handleDraw = () => {
+    if (!isCardCountSet) {
+      setError('请先在设置中设置卡片总数');
+      return;
+    }
     setIsDrawing(true);
     setError(null);
 
