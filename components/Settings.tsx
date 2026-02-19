@@ -6,15 +6,20 @@ import { useSettings } from "@/lib/settings";
 export const Settings: React.FC = () => {
   const { isDarkMode, toggleDarkMode, cardCount, setCardCount } = useSettings();
   const [inputValue, setInputValue] = useState<string>(cardCount.toString());
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = () => {
+    const numValue = parseInt(inputValue, 10);
+    if (!isNaN(numValue) && numValue > 0) {
+      setIsSaving(true);
+      setCardCount(numValue);
+      // 模拟保存效果
+      setTimeout(() => setIsSaving(false), 500);
+    }
+  };
 
   const handleCardCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setInputValue(value);
-
-    const numValue = parseInt(value, 10);
-    if (!isNaN(numValue) && numValue > 0) {
-      setCardCount(numValue);
-    }
+    setInputValue(e.target.value);
   };
 
   const handleInputBlur = () => {
@@ -30,10 +35,10 @@ export const Settings: React.FC = () => {
         {/* Header */}
         <div className="mb-12">
           <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">
-            Settings
+            设置
           </h1>
           <p className="mt-2 text-zinc-500 dark:text-zinc-400">
-            Manage your application preferences and theme.
+            管理您的应用偏好和主题。
           </p>
         </div>
 
@@ -43,10 +48,10 @@ export const Settings: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>
                 <h2 className="text-sm font-medium text-black dark:text-white uppercase tracking-wider">
-                  Appearance
+                  外观
                 </h2>
                 <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                  Customize how the interface looks on your device.
+                  自定义界面在您设备上的显示方式。
                 </p>
               </div>
               <div className="md:col-span-2">
@@ -65,10 +70,10 @@ export const Settings: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-black dark:text-white">
-                        {isDarkMode ? 'Dark Mode' : 'Light Mode'}
+                        {isDarkMode ? '深色模式' : '浅色模式'}
                       </p>
                       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Currently using {isDarkMode ? 'dark' : 'light'} theme
+                        当前正在使用 {isDarkMode ? '深色' : '浅色'} 主题
                       </p>
                     </div>
                   </div>
@@ -92,17 +97,17 @@ export const Settings: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>
                 <h2 className="text-sm font-medium text-black dark:text-white uppercase tracking-wider">
-                  Card Configuration
+                  卡片配置
                 </h2>
                 <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                  Adjust the number of cards displayed in your list.
+                  调整列表中显示的卡片数量。
                 </p>
               </div>
               <div className="md:col-span-2 space-y-4">
                 <div className="flex flex-col gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
                   <div className="flex items-center justify-between">
                     <label htmlFor="cardCount" className="text-sm font-medium text-black dark:text-white">
-                      Cards per page
+                      每页卡片数
                     </label>
                     <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">
                       {cardCount}
@@ -118,14 +123,13 @@ export const Settings: React.FC = () => {
                       onChange={handleCardCountChange}
                       onBlur={handleInputBlur}
                       className="flex-1 h-10 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
-                      placeholder="Enter count"
+                      placeholder="输入数量"
                     />
                     <div className="flex gap-1">
                       <button
                         onClick={() => {
-                          const newValue = Math.max(1, cardCount - 5);
+                          const newValue = Math.max(1, parseInt(inputValue, 10) - 5);
                           setInputValue(newValue.toString());
-                          setCardCount(newValue);
                         }}
                         className="w-10 h-10 flex items-center justify-center rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400 transition-colors"
                       >
@@ -135,9 +139,8 @@ export const Settings: React.FC = () => {
                       </button>
                       <button
                         onClick={() => {
-                          const newValue = Math.min(100, cardCount + 5);
+                          const newValue = Math.min(100, parseInt(inputValue, 10) + 5);
                           setInputValue(newValue.toString());
-                          setCardCount(newValue);
                         }}
                         className="w-10 h-10 flex items-center justify-center rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400 transition-colors"
                       >
@@ -147,9 +150,22 @@ export const Settings: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                  <p className="text-[11px] text-zinc-500 dark:text-zinc-500 italic">
-                    Tip: Use the buttons to quickly adjust by 5 units.
-                  </p>
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-500 italic">
+                      提示：使用按钮可以快速调整 5 个单位。
+                    </p>
+                    <button
+                      onClick={handleSave}
+                      disabled={isSaving || inputValue === cardCount.toString()}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        isSaving || inputValue === cardCount.toString()
+                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed'
+                          : 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:opacity-90 active:scale-95'
+                      }`}
+                    >
+                      {isSaving ? '保存中...' : '保存设置'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -159,7 +175,7 @@ export const Settings: React.FC = () => {
         {/* Footer Info */}
         <div className="mt-16 pt-8 border-t border-zinc-100 dark:border-zinc-900 text-center">
           <p className="text-xs text-zinc-400 dark:text-zinc-600">
-            FishBall Cards Settings • Version 1.0.0
+            FishBall Cards 设置 • 版本 1.0.0
           </p>
         </div>
       </div>
