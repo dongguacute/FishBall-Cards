@@ -3,12 +3,15 @@
 import React, { useState } from 'react';
 import { useStudents } from '@/lib/store';
 import { DrawCreditModal } from './DrawCreditModal';
+import { ConfirmModal } from './ConfirmModal';
 import { Student } from '@/lib/types';
 
 export const StudentList: React.FC = () => {
   const { students, selectedClass, setSelectedClass, filteredStudents, removeStudent } = useStudents();
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isDrawModalOpen, setIsDrawModalOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
 
   // 获取所有唯一的班级
   const allClasses = Array.from(new Set(students.map(student => student.class)));
@@ -87,7 +90,8 @@ export const StudentList: React.FC = () => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    removeStudent(student.id);
+                    setStudentToDelete(student);
+                    setIsDeleteConfirmOpen(true);
                   }}
                   className="text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1"
                   title="删除学生"
@@ -121,6 +125,24 @@ export const StudentList: React.FC = () => {
         isOpen={isDrawModalOpen}
         student={selectedStudent}
         onClose={() => setIsDrawModalOpen(false)}
+      />
+
+      {/* 删除确认弹窗 */}
+      <ConfirmModal
+        isOpen={isDeleteConfirmOpen}
+        title="确认删除"
+        message={`确定要删除学生 ${studentToDelete?.name} 吗？删除后该学生账号上的积分将自动收回。`}
+        confirmText="确认删除"
+        variant="danger"
+        onConfirm={() => {
+          if (studentToDelete) {
+            removeStudent(studentToDelete.id);
+          }
+        }}
+        onClose={() => {
+          setIsDeleteConfirmOpen(false);
+          setStudentToDelete(null);
+        }}
       />
     </div>
   );
