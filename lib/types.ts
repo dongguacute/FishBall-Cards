@@ -3,4 +3,5 @@ export interface Student {
   name: string;
   class: string;
   createdAt: Date;
+  credit: number;
 }

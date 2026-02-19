@@ -5,9 +5,10 @@ import React from "react";
 interface FloatingDockProps {
   onAddStudent?: () => void;
   activeTab?: 'students' | 'add' | 'settings';
+  onTabChange?: (tab: 'students' | 'settings') => void;
 }
 
-export const FloatingDock: React.FC<FloatingDockProps> = ({ onAddStudent, activeTab = 'students' }) => {
+export const FloatingDock: React.FC<FloatingDockProps> = ({ onAddStudent, activeTab = 'students', onTabChange }) => {
   return (
     <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
       {/* 外部容器：提供液态边缘感和多层阴影 */}
@@ -19,11 +20,14 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({ onAddStudent, active
         <div className="relative flex items-center gap-2 px-4 py-1.5 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-zinc-200 dark:border-zinc-800 rounded-full shadow-sm overflow-hidden">
           
           {/* 学生列表选项 */}
-          <button className={`relative flex items-center gap-2 px-2 sm:px-4 py-1.5 rounded-full transition-colors duration-200 group/item ${
-            activeTab === 'students'
-              ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
-              : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'
-          }`}>
+          <button
+            onClick={() => onTabChange?.('students')}
+            className={`relative flex items-center gap-2 px-2 sm:px-4 py-1.5 rounded-full transition-colors duration-200 group/item ${
+              activeTab === 'students'
+                ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
+                : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'
+            }`}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="18"
@@ -60,7 +64,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({ onAddStudent, active
           {/* 添加学生选项 */}
           <button
             onClick={onAddStudent}
-            className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-colors duration-200 group/item ${
+            className={`relative flex items-center justify-center w-8 h-8 rounded-full transition-colors duration-200 group/item ${
               activeTab === 'add'
                 ? 'bg-zinc-900 dark:bg-zinc-100'
                 : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'
@@ -91,11 +95,14 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({ onAddStudent, active
           <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-800 mx-1" />
 
           {/* 设置选项 */}
-          <button className={`relative flex items-center gap-2 px-2 sm:px-4 py-1.5 rounded-full transition-colors duration-200 group/item ${
-            activeTab === 'settings'
-              ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
-              : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'
-          }`}>
+          <button
+            onClick={() => onTabChange?.('settings')}
+            className={`relative flex items-center gap-2 px-2 sm:px-4 py-1.5 rounded-full transition-colors duration-200 group/item ${
+              activeTab === 'settings'
+                ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
+                : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'
+            }`}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="18"
