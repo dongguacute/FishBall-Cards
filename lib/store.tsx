@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Student } from './types';
 
 interface StudentContextType {
@@ -14,9 +14,45 @@ interface StudentContextType {
 
 const StudentContext = createContext<StudentContextType | undefined>(undefined);
 
+// localStorage 键名
+const STUDENTS_STORAGE_KEY = 'fishball-cards-students';
+
+// 从 localStorage 加载学生数据
+const loadStudentsFromStorage = (): Student[] => {
+  try {
+    const stored = localStorage.getItem(STUDENTS_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // 将 createdAt 字符串转换回 Date 对象
+      return parsed.map((student: any) => ({
+        ...student,
+        createdAt: new Date(student.createdAt)
+      }));
+    }
+  } catch (error) {
+    console.error('加载学生数据失败:', error);
+  }
+  return [];
+};
+
+// 保存学生数据到 localStorage
+const saveStudentsToStorage = (students: Student[]) => {
+  try {
+    localStorage.setItem(STUDENTS_STORAGE_KEY, JSON.stringify(students));
+  } catch (error) {
+    console.error('保存学生数据失败:', error);
+  }
+};
+
 export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>('全部');
+
+  // 初始化时从 localStorage 加载数据
+  useEffect(() => {
+    const storedStudents = loadStudentsFromStorage();
+    setStudents(storedStudents);
+  }, []);
 
   const addStudent = (name: string, studentClass: string) => {
     const newStudent: Student = {
@@ -25,11 +61,19 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
       class: studentClass,
       createdAt: new Date(),
     };
-    setStudents(prev => [...prev, newStudent]);
+    setStudents(prev => {
+      const updatedStudents = [...prev, newStudent];
+      saveStudentsToStorage(updatedStudents);
+      return updatedStudents;
+    });
   };
 
   const removeStudent = (id: string) => {
-    setStudents(prev => prev.filter(student => student.id !== id));
+    setStudents(prev => {
+      const updatedStudents = prev.filter(student => student.id !== id);
+      saveStudentsToStorage(updatedStudents);
+      return updatedStudents;
+    });
   };
 
   const filteredStudents = selectedClass === '全部'
