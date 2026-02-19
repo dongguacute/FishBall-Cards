@@ -11,16 +11,18 @@ export function generateRandomCredit(
   max: string | null,
   student?: Student,
   updateCredit?: (id: string, newCredit: number) => void,
-  onSuccess?: (newRemaining: number) => void
+  onSuccess?: (newRemaining: number) => void,
+  multiplier: number = 1
 ): number {
   if (!max) {
     throw new Error('MaxCredit is not set');
   }
-  const maxValue = parseInt(max, 10);
-  const randomValue = Math.floor(Math.random() * (maxValue - min + 1)) + min;
+
+  const baseMax = parseInt(max, 10);
+  const randomValue = Math.floor(Math.random() * (multiplier - min + 1)) + min;
   
   // 计算积分卡剩余数量并保存
-  const remainingCredit = maxValue - randomValue;
+  const remainingCredit = baseMax - randomValue;
   try {
     localStorage.setItem('fishball-cards-count', remainingCredit.toString());
     

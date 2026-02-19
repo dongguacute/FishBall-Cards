@@ -13,6 +13,11 @@ interface SettingsContextType {
   setCardCount: (count: number) => void;
   updateCardCount: (count: number) => void;
   isCardCountSet: boolean;
+
+  // 爆率 (倍率，例如 1x, 2x, 5x)
+  dropRate: number;
+  setDropRate: (rate: number) => void;
+
   resetSettings: () => void;
 }
 
@@ -44,6 +49,7 @@ const getCookie = (name: string): string | null => {
 // localStorage 相关常量
 const CARD_COUNT_STORAGE_KEY = 'fishball-cards-count';
 const IS_CARD_COUNT_SET_KEY = 'fishball-cards-count-set';
+const DROP_RATE_STORAGE_KEY = 'fishball-drop-rate';
 
 // 加载明暗模式设置
 const loadDarkModeFromCookie = (): boolean => {
@@ -85,14 +91,42 @@ const saveCardCountToStorage = (count: number) => {
   }
 };
 
+// 加载爆率设置
+const loadDropRateFromStorage = (): number => {
+  try {
+    const stored = localStorage.getItem(DROP_RATE_STORAGE_KEY);
+    if (stored) {
+      const parsed = parseInt(stored, 10);
+      if (!isNaN(parsed) && parsed >= 1) {
+        return parsed;
+      }
+    }
+  } catch (error) {
+    console.error('加载爆率设置失败:', error);
+  }
+  return 1; // 默认值 1 倍
+};
+
+// 保存爆率设置到 localStorage
+const saveDropRateToStorage = (rate: number) => {
+  try {
+    localStorage.setItem(DROP_RATE_STORAGE_KEY, rate.toString());
+  } catch (error) {
+    console.error('保存爆率设置失败:', error);
+  }
+};
+
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [cardCount, setCardCountState] = useState<number>(10);
   const [isCardCountSet, setIsCardCountSet] = useState<boolean>(false);
+  const [dropRate, setDropRateState] = useState<number>(30);
 
   const handleStorageUpdate = () => {
     const count = loadCardCountFromStorage();
     setCardCountState(count <= 0 ? 10 : count);
+    const rate = loadDropRateFromStorage();
+    setDropRateState(rate);
   };
 
   // 初始化设置
@@ -100,12 +134,14 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const darkMode = loadDarkModeFromCookie();
     const count = loadCardCountFromStorage();
     const isSet = localStorage.getItem(IS_CARD_COUNT_SET_KEY) === 'true';
+    const rate = loadDropRateFromStorage();
 
     setIsDarkMode(darkMode);
     // 初始化时，如果卡片数量为 0 或 -1，强制设为 10
     const finalCount = count <= 0 ? 10 : count;
     setCardCountState(finalCount);
     setIsCardCountSet(isSet);
+    setDropRateState(rate);
 
     // 如果初始化发现是非法值，同步回存储
     if (count <= 0) {
@@ -164,11 +200,22 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     window.dispatchEvent(new Event('storage-settings-updated'));
   };
 
+  // 设置爆率
+  const setDropRate = (rate: number) => {
+    if (rate >= 1) {
+      setDropRateState(rate);
+      saveDropRateToStorage(rate);
+      window.dispatchEvent(new Event('storage-settings-updated'));
+    }
+  };
+
   const resetSettings = () => {
     setCardCountState(10);
     setIsCardCountSet(false);
+    setDropRateState(1);
     localStorage.removeItem(CARD_COUNT_STORAGE_KEY);
     localStorage.removeItem(IS_CARD_COUNT_SET_KEY);
+    localStorage.removeItem(DROP_RATE_STORAGE_KEY);
   };
 
   const value = {
@@ -178,6 +225,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setCardCount,
     updateCardCount,
     isCardCountSet,
+    dropRate,
+    setDropRate,
     resetSettings,
   };
 

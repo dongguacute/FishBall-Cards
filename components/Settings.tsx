@@ -5,10 +5,12 @@ import { useSettings } from "@/lib/settings";
 import { useStudents } from "@/lib/store";
 
 export const Settings: React.FC = () => {
-  const { isDarkMode, toggleDarkMode, cardCount, setCardCount, isCardCountSet, resetSettings } = useSettings();
+  const { isDarkMode, toggleDarkMode, cardCount, setCardCount, isCardCountSet, dropRate, setDropRate, resetSettings } = useSettings();
   const { students, clearAllData } = useStudents();
   const [inputValue, setInputValue] = useState<string>(cardCount.toString());
+  const [dropRateValue, setDropRateValue] = useState<string>(dropRate.toString());
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingDropRate, setIsSavingDropRate] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   // 锁定逻辑：只要设置过一次就被锁定
@@ -19,6 +21,11 @@ export const Settings: React.FC = () => {
     setInputValue(cardCount.toString());
   }, [cardCount]);
 
+  // 当外部 dropRate 改变时，同步更新本地 dropRateValue
+  React.useEffect(() => {
+    setDropRateValue(dropRate.toString());
+  }, [dropRate]);
+
   const handleSave = () => {
     const numValue = parseInt(inputValue, 10);
     if (!isNaN(numValue) && numValue > 0) {
@@ -26,6 +33,16 @@ export const Settings: React.FC = () => {
       setCardCount(numValue);
       // 模拟保存效果
       setTimeout(() => setIsSaving(false), 500);
+    }
+  };
+
+  const handleSaveDropRate = () => {
+    const numValue = parseInt(dropRateValue, 10);
+    if (!isNaN(numValue) && numValue >= 1) {
+      setIsSavingDropRate(true);
+      setDropRate(numValue);
+      // 模拟保存效果
+      setTimeout(() => setIsSavingDropRate(false), 500);
     }
   };
 
@@ -43,6 +60,17 @@ export const Settings: React.FC = () => {
     const numValue = parseInt(inputValue, 10);
     if (isNaN(numValue) || numValue <= 0) {
       setInputValue(cardCount.toString());
+    }
+  };
+
+  const handleDropRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDropRateValue(e.target.value);
+  };
+
+  const handleDropRateBlur = () => {
+    const numValue = parseInt(dropRateValue, 10);
+    if (isNaN(numValue) || numValue < 1) {
+      setDropRateValue(dropRate.toString());
     }
   };
 
@@ -207,6 +235,85 @@ export const Settings: React.FC = () => {
                       }`}
                     >
                       {isSaving ? '保存中...' : '保存设置'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Drop Rate Settings Section */}
+          <section className="border-t border-zinc-200 dark:border-zinc-800 pt-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div>
+                <h2 className="text-sm font-medium text-black dark:text-white uppercase tracking-wider">
+                  爆率配置
+                </h2>
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                  设置单次抽奖可获得的最大积分倍数
+                </p>
+              </div>
+              <div className="md:col-span-2 space-y-4">
+                <div className="flex flex-col gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="dropRate" className="text-sm font-medium text-black dark:text-white">
+                      当前爆率 (倍)
+                    </label>
+                    <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">
+                      {dropRate}x
+                    </span>
+                  </div>
+                  <div className="flex gap-3">
+                    <input
+                      id="dropRate"
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={dropRateValue}
+                      onChange={handleDropRateChange}
+                      onBlur={handleDropRateBlur}
+                      className="flex-1 h-10 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
+                      placeholder="输入倍数 (例如 1, 2, 5)"
+                    />
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => {
+                          const newValue = Math.max(1, parseInt(dropRateValue, 10) - 1);
+                          setDropRateValue(newValue.toString());
+                        }}
+                        className="w-10 h-10 flex items-center justify-center rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => {
+                          const newValue = Math.min(100, parseInt(dropRateValue, 10) + 1);
+                          setDropRateValue(newValue.toString());
+                        }}
+                        className="w-10 h-10 flex items-center justify-center rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-500 italic">
+                      提示：爆率倍数决定了单次抽奖最多可获得的积分卡数量（倍数 × 基础值）。
+                    </p>
+                    <button
+                      onClick={handleSaveDropRate}
+                      disabled={isSavingDropRate}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        isSavingDropRate
+                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed'
+                          : 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:opacity-90 active:scale-95'
+                      }`}
+                    >
+                      {isSavingDropRate ? '保存中...' : '保存爆率'}
                     </button>
                   </div>
                 </div>

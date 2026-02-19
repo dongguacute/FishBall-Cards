@@ -13,7 +13,7 @@ interface DrawCreditModalProps {
 }
 
 export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ student, isOpen, onClose }) => {
-  const { cardCount, updateCardCount } = useSettings();
+  const { cardCount, updateCardCount, dropRate } = useSettings();
   const { updateStudentCredit } = useStudents();
   const [drawnValue, setDrawnValue] = useState<number | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -29,7 +29,9 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ student, isOpe
           1, 
           cardCount.toString(), 
           student, 
-          updateStudentCredit
+          updateStudentCredit,
+          undefined,
+          dropRate
         );
         setDrawnValue(value);
       } catch (error) {
@@ -53,7 +55,7 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ student, isOpe
             为 {student.name} 抽取积分
           </h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">
-            点击下方按钮随机抽取 1-{cardCount} 积分
+            点击下方按钮随机抽取 1-{dropRate} 积分
           </p>
 
           <div className="relative h-32 flex items-center justify-center mb-8">
