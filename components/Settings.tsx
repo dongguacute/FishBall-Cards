@@ -100,7 +100,7 @@ export const Settings: React.FC = () => {
                   卡片配置
                 </h2>
                 <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                  调整列表中显示的卡片数量。
+                  调整积分卡总数
                 </p>
               </div>
               <div className="md:col-span-2 space-y-4">

@@ -60,6 +60,7 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
       name,
       class: studentClass,
       createdAt: new Date(),
+      credit: 0,
     };
     setStudents(prev => {
       const updatedStudents = [...prev, newStudent];
