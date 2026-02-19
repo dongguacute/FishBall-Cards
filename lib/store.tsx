@@ -7,6 +7,7 @@ interface StudentContextType {
   students: Student[];
   addStudent: (name: string, studentClass: string) => void;
   removeStudent: (id: string) => void;
+  clearAllData: () => void;
   selectedClass: string;
   setSelectedClass: (className: string) => void;
   filteredStudents: Student[];
@@ -77,6 +78,12 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   };
 
+  const clearAllData = () => {
+    setStudents([]);
+    localStorage.removeItem(STUDENTS_STORAGE_KEY);
+    // 这里可以添加其他需要清除的数据
+  };
+
   const filteredStudents = selectedClass === '全部'
     ? students
     : students.filter(student => student.class === selectedClass);
@@ -85,6 +92,7 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     students,
     addStudent,
     removeStudent,
+    clearAllData,
     selectedClass,
     setSelectedClass,
     filteredStudents,

@@ -11,6 +11,8 @@ interface SettingsContextType {
   // 卡片数量
   cardCount: number;
   setCardCount: (count: number) => void;
+  isCardCountSet: boolean;
+  resetSettings: () => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -40,6 +42,7 @@ const getCookie = (name: string): string | null => {
 
 // localStorage 相关常量
 const CARD_COUNT_STORAGE_KEY = 'fishball-cards-count';
+const IS_CARD_COUNT_SET_KEY = 'fishball-cards-count-set';
 
 // 加载明暗模式设置
 const loadDarkModeFromCookie = (): boolean => {
@@ -84,14 +87,17 @@ const saveCardCountToStorage = (count: number) => {
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [cardCount, setCardCountState] = useState<number>(10);
+  const [isCardCountSet, setIsCardCountSet] = useState<boolean>(false);
 
   // 初始化设置
   useEffect(() => {
     const darkMode = loadDarkModeFromCookie();
     const count = loadCardCountFromStorage();
+    const isSet = localStorage.getItem(IS_CARD_COUNT_SET_KEY) === 'true';
 
     setIsDarkMode(darkMode);
     setCardCountState(count);
+    setIsCardCountSet(isSet);
 
     // 应用主题到文档
     if (darkMode) {
@@ -124,7 +130,16 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (count > 0) {
       setCardCountState(count);
       saveCardCountToStorage(count);
+      setIsCardCountSet(true);
+      localStorage.setItem(IS_CARD_COUNT_SET_KEY, 'true');
     }
+  };
+
+  const resetSettings = () => {
+    setCardCountState(10);
+    setIsCardCountSet(false);
+    localStorage.removeItem(CARD_COUNT_STORAGE_KEY);
+    localStorage.removeItem(IS_CARD_COUNT_SET_KEY);
   };
 
   const value = {
@@ -132,6 +147,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     toggleDarkMode,
     cardCount,
     setCardCount,
+    isCardCountSet,
+    resetSettings,
   };
 
   return (
