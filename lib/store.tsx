@@ -9,6 +9,7 @@ interface StudentContextType {
   addStudent: (name: string, studentClass: string) => void;
   removeStudent: (id: string) => void;
   updateStudentCredit: (id: string, newCredit: number) => void;
+  resetAllStudentCredits: () => void;
   clearAllData: () => void;
   selectedClass: string;
   setSelectedClass: (className: string) => void;
@@ -91,6 +92,14 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   };
 
+  const resetAllStudentCredits = () => {
+    setStudents(prev => {
+      const updatedStudents = prev.map(student => ({ ...student, credit: 0 }));
+      saveStudentsToStorage(updatedStudents);
+      return updatedStudents;
+    });
+  };
+
   const clearAllData = () => {
     setStudents([]);
     localStorage.removeItem(STUDENTS_STORAGE_KEY);
@@ -106,6 +115,7 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     addStudent,
     removeStudent,
     updateStudentCredit,
+    resetAllStudentCredits,
     clearAllData,
     selectedClass,
     setSelectedClass,

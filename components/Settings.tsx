@@ -6,7 +6,7 @@ import { useStudents } from "@/lib/store";
 
 export const Settings: React.FC = () => {
   const { isDarkMode, toggleDarkMode, cardCount, setCardCount, isCardCountSet, dropRate, setDropRate, resetSettings } = useSettings();
-  const { students, clearAllData } = useStudents();
+  const { students, resetAllStudentCredits } = useStudents();
   const [inputValue, setInputValue] = useState<string>(cardCount.toString());
   const [dropRateValue, setDropRateValue] = useState<string>(dropRate.toString());
   const [isSaving, setIsSaving] = useState(false);
@@ -47,8 +47,9 @@ export const Settings: React.FC = () => {
   };
 
   const handleResetAll = () => {
-    // 仅清除卡片数量设置，不清除学生列表
+    // 仅清除卡片数量设置，不清除学生列表，但清空学生积分
     resetSettings();
+    resetAllStudentCredits();
     setShowResetConfirm(false);
   };
 
@@ -341,7 +342,7 @@ export const Settings: React.FC = () => {
                           重置卡片设置
                         </p>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                          清除已保存的卡片数量设置，解锁编辑功能。
+                          清除已保存的卡片数量设置，解锁编辑功能，并将所有学生积分清零。
                         </p>
                       </div>
                       <button
