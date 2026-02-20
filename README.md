@@ -2,6 +2,8 @@
 
 Fishball Cards是一个促进学生学习兴趣的软件，主要面向中国内地的初中生或者高中生。
 
+示例预览：https://fishball-cards.pages.dev/
+
 ## 灵感来源
 
 灵感来源于b站UP主[鱼蛋教育圈](https://space.bilibili.com/3493116134820283)的一期视频
