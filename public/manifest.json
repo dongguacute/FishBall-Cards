@@ -1,0 +1,22 @@
+{
+  "name": "FishBall-Cards",
+  "short_name": "FishBall",
+  "description": "FishBall-Cards is a campus-based learning incentive platform designed for Chinese schools",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

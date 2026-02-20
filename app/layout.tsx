@@ -16,8 +16,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "FishBall-Cards",
   description: "FishBall-Cards is a campus-based learning incentive platform designed for Chinese schools",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "FishBall-Cards",
+  },
   icons: {
     icon: "/logo.svg",
+    apple: "/logo.svg",
   },
 };
 
