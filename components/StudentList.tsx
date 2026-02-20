@@ -89,6 +89,7 @@ export const StudentList: React.FC = () => {
 
   return (
     <div className="w-full max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">FishBall Cards</h1>
       {/* 搜索和班级筛选器 */}
       <div className="mb-6 space-y-4">
         {/* 搜索框 */}
