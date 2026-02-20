@@ -26,12 +26,14 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({
   const [drawnValue, setDrawnValue] = useState<number | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [canClose, setCanClose] = useState(true);
 
   // 当弹窗打开时，重置状态
   React.useEffect(() => {
     if (isOpen) {
       setDrawnValue(null);
       setError(null);
+      setCanClose(true);
     }
   }, [isOpen]);
 
@@ -46,6 +48,7 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({
     setIsDrawing(true);
     setError(null);
     setDrawnValue(null);
+    setCanClose(false);
 
     // 计算当前所有学生已领取的积分总和
     const totalUsedCredits = students.reduce((acc, s) => acc + (s.credit || 0), 0);
@@ -68,12 +71,18 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({
         
         if (value === 0) {
           setError('卡没了');
+          setCanClose(true);
         } else {
           setDrawnValue(value);
+          // 抽取成功后，延迟 1.5 秒才允许关闭，且不提供“继续抽取”按钮
+          setTimeout(() => {
+            setCanClose(true);
+          }, 1500);
         }
       } catch (err: any) {
         console.error('抽取积分失败:', err);
         setError('抽取失败，请重试');
+        setCanClose(true);
       } finally {
         setIsDrawing(false);
       }
@@ -81,6 +90,7 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({
   };
 
   const handleClose = () => {
+    if (!canClose) return;
     setDrawnValue(null);
     setError(null);
     onClose();
@@ -131,21 +141,29 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({
               >
                 {isDrawing ? '抽取中...' : '开始抽取'}
               </button>
-            ) : (
+            ) : error ? (
               <button
-                onClick={drawnValue !== null ? handleDraw : handleClose}
+                onClick={handleClose}
                 className="w-full py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
               >
-                {error ? '好吧' : '继续抽取'}
+                好吧
+              </button>
+            ) : (
+              <button
+                onClick={handleClose}
+                disabled={!canClose}
+                className="w-full py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl font-bold hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
+              >
+                {canClose ? '完成' : '请稍候...'}
               </button>
             )}
             
-            {!isDrawing && (
+            {!isDrawing && drawnValue === null && !error && (
               <button
                 onClick={onClose}
                 className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
               >
-                {drawnValue !== null ? '完成' : '取消'}
+                取消
               </button>
             )}
           </div>
