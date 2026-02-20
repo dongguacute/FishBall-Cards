@@ -4,12 +4,15 @@ import React, { useState } from 'react';
 import { useStudents } from '@/lib/store';
 import { DrawCreditModal } from './DrawCreditModal';
 import { ConfirmModal } from './ConfirmModal';
+import { Exchange } from './Exchange';
 import { Student } from '@/lib/types';
 
 export const StudentList: React.FC = () => {
   const { students, selectedClass, setSelectedClass, filteredStudents, removeStudent } = useStudents();
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isDrawModalOpen, setIsDrawModalOpen] = useState(false);
+  const [isExchangeOpen, setIsExchangeOpen] = useState(false);
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,7 +27,17 @@ export const StudentList: React.FC = () => {
 
   const handleStudentClick = (student: Student) => {
     setSelectedStudent(student);
+    setIsActionModalOpen(true);
+  };
+
+  const handleStartDraw = () => {
+    setIsActionModalOpen(false);
     setIsDrawModalOpen(true);
+  };
+
+  const handleStartExchange = () => {
+    setIsActionModalOpen(false);
+    setIsExchangeOpen(true);
   };
 
   return (
@@ -69,7 +82,7 @@ export const StudentList: React.FC = () => {
 
         <div className="flex items-center gap-4 flex-wrap">
           <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">班级筛选：</span>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap flex-1">
             <button
               onClick={() => setSelectedClass('全部')}
               className={`px-3 py-1 text-sm rounded-full transition-colors ${
@@ -99,6 +112,84 @@ export const StudentList: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* 学生操作选择弹窗 */}
+      {isActionModalOpen && selectedStudent && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsActionModalOpen(false)} />
+          <div className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 animate-in zoom-in-95 duration-200 p-8">
+            <div className="text-center mb-8">
+              <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">{selectedStudent.name}</h3>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">请选择要进行的操作</p>
+            </div>
+            <div className="grid grid-cols-1 gap-4">
+              <button
+                onClick={handleStartDraw}
+                className="flex items-center justify-between px-6 py-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-2xl font-bold hover:opacity-90 active:scale-[0.98] transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-white/10 dark:bg-black/10">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                    </svg>
+                  </div>
+                  <span>抽取积分</span>
+                </div>
+                <svg className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+              
+              <button
+                onClick={handleStartExchange}
+                className="flex items-center justify-between px-6 py-4 bg-yellow-400 text-black rounded-2xl font-bold hover:bg-yellow-500 active:scale-[0.98] transition-all group shadow-lg shadow-yellow-400/20"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-black/5">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clipRule="evenodd" />
+                      <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z" />
+                    </svg>
+                  </div>
+                  <span>积分兑换</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs bg-black/10 px-2 py-0.5 rounded-full">{selectedStudent.credit || 0} 积分</span>
+                  <svg className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </button>
+            </div>
+            <button 
+              onClick={() => setIsActionModalOpen(false)}
+              className="w-full mt-6 py-3 text-sm text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 transition-colors"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 兑换中心弹窗 */}
+      {isExchangeOpen && selectedStudent && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsExchangeOpen(false)} />
+          <div className="relative w-full max-w-5xl max-h-[90vh] bg-white dark:bg-black rounded-3xl shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 animate-in zoom-in-95 duration-200">
+            <button 
+              onClick={() => setIsExchangeOpen(false)}
+              className="absolute top-6 right-6 z-[70] p-2 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-500 hover:text-black dark:hover:text-white transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="overflow-y-auto h-full">
+              <Exchange student={selectedStudent} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 学生列表 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
