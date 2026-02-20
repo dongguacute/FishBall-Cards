@@ -201,7 +201,7 @@ export const Settings: React.FC = () => {
                 <div className="flex flex-col gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
                     <div className="flex items-center justify-between">
                       <label htmlFor="cardCount" className="text-sm font-medium text-black dark:text-white">
-                        每页卡片数
+                        卡片数量设置
                       </label>
                       <div className="flex items-center gap-3">
                         {isLocked && (
