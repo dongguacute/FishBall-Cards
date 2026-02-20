@@ -35,6 +35,8 @@ Fishball Cards是一个促进学生学习兴趣的软件，主要面向中国内
 - Eslint
 - React
 
+> 建议使用[pnpm](https://pnpm.io/)作为包管理器。
+
 ## 隐私说明
 
 本网页应用所有数据均存储在`Local Storage`中，并无任何将数据上传云端的操作，即所有操作都将在本地进行
