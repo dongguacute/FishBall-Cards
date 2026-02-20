@@ -9,6 +9,7 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   output: "export",
+  outputFileTracingRoot: __dirname,
 };
 
 export default withPWA(nextConfig);
