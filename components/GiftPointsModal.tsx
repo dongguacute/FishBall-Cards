@@ -30,9 +30,10 @@ export const GiftPointsModal: React.FC<GiftPointsModalProps> = ({
 
   if (!isOpen || !currentFromStudent) return null;
 
-  // 过滤掉自己，并支持搜索
+  // 过滤掉自己，并限制为同班同学，同时支持搜索
   const otherStudents = students.filter(s => 
     s.id !== currentFromStudent.id && 
+    s.class === currentFromStudent.class &&
     (s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
      s.class.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -83,7 +84,7 @@ export const GiftPointsModal: React.FC<GiftPointsModalProps> = ({
               <div>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">规则</p>
                 <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                  送出 <span className="text-yellow-600 dark:text-yellow-400 font-bold">1 积分</span> 给同学，
+                  送出 <span className="text-yellow-600 dark:text-yellow-400 font-bold">1 积分</span> 给 <span className="text-blue-600 dark:text-blue-400 font-bold">同班</span> 同学，
                   你将获得 <span className="text-yellow-600 dark:text-yellow-400 font-bold">2 次</span> 抽奖机会！
                 </p>
               </div>
@@ -92,7 +93,7 @@ export const GiftPointsModal: React.FC<GiftPointsModalProps> = ({
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">选择接收礼物的同学</label>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">选择接收礼物的 <span className="text-blue-600 dark:text-blue-400 font-bold">{currentFromStudent.class}</span> 同学</label>
               <div className="relative mb-2">
                 <input
                   type="text"
@@ -123,7 +124,6 @@ export const GiftPointsModal: React.FC<GiftPointsModalProps> = ({
                     >
                       <div className="text-left">
                         <p className="font-bold text-sm">{s.name}</p>
-                        <p className="text-xs opacity-70">{s.class}</p>
                       </div>
                       {selectedToStudentId === s.id && (
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
