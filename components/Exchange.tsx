@@ -23,6 +23,7 @@ export const Exchange: React.FC<ExchangeProps> = ({ student }) => {
 
   const [studentRewards, setStudentRewards] = useState<StudentReward[]>([]);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' | null }>({ text: '', type: null });
+  const [isMounted, setIsMounted] = useState(false);
 
   // 加载该学生的已拥有奖励
   const loadRewards = () => {
@@ -32,6 +33,7 @@ export const Exchange: React.FC<ExchangeProps> = ({ student }) => {
   };
 
   useEffect(() => {
+    setIsMounted(true);
     loadRewards();
     
     const handleUpdate = () => {
@@ -196,7 +198,7 @@ export const Exchange: React.FC<ExchangeProps> = ({ student }) => {
                         {reward.prizeName}
                       </p>
                       <p className="text-[9px] text-zinc-400 font-mono mt-0.5">
-                        {new Date(reward.purchaseDate).toLocaleString()}
+                        {isMounted ? new Date(reward.purchaseDate).toLocaleString('zh-CN') : ''}
                       </p>
                     </div>
                     {!reward.used && (

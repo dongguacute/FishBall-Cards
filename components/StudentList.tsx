@@ -25,6 +25,12 @@ export const StudentList: React.FC = () => {
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const [isMounted, setIsMounted] = useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // 获取所有唯一的班级
   const allClasses = Array.from(new Set(students.map(student => student.class)));
 
@@ -139,7 +145,7 @@ export const StudentList: React.FC = () => {
                   : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
               }`}
             >
-              全部 ({students.length})
+              全部 ({isMounted ? students.length : 0})
             </button>
             {allClasses.map(className => {
               const count = students.filter(s => s.class === className).length;
@@ -371,11 +377,13 @@ export const StudentList: React.FC = () => {
 
       {/* 学生列表 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {displayedStudents.length === 0 ? (
+        {!isMounted || displayedStudents.length === 0 ? (
           <div className="col-span-full text-center py-12">
-            <div className="text-zinc-400 dark:text-zinc-600 text-lg mb-2">暂无匹配学生</div>
+            <div className="text-zinc-400 dark:text-zinc-600 text-lg mb-2">
+              {!isMounted ? '加载中...' : '暂无匹配学生'}
+            </div>
             <div className="text-zinc-500 dark:text-zinc-500 text-sm">
-              {searchQuery ? '尝试更换搜索关键词' : '点击添加按钮来添加第一个学生'}
+              {!isMounted ? '正在获取学生数据' : (searchQuery ? '尝试更换搜索关键词' : '点击添加按钮来添加第一个学生')}
             </div>
           </div>
         ) : (
@@ -399,7 +407,7 @@ export const StudentList: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-zinc-400 dark:text-zinc-500 text-xs mt-2">
-                    {student.createdAt.toLocaleDateString('zh-CN')}
+                    {isMounted ? student.createdAt.toLocaleDateString('zh-CN') : ''}
                   </p>
                 </div>
                 <button

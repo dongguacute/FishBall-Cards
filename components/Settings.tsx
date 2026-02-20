@@ -26,6 +26,7 @@ export const Settings: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingDropRate, setIsSavingDropRate] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   // 奖品编辑状态
   const [newPrizeName, setNewPrizeName] = useState("");
@@ -64,6 +65,7 @@ export const Settings: React.FC = () => {
 
   // 当外部 cardCount 改变时（例如通过清除、初始化或回收），同步更新本地 inputValue
   React.useEffect(() => {
+    setIsMounted(true);
     setInputValue(cardCount.toString());
   }, [cardCount]);
 
@@ -206,12 +208,12 @@ export const Settings: React.FC = () => {
                           <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
                             <span className="text-[10px] text-zinc-500 dark:text-zinc-400 uppercase font-bold tracking-wider">剩余</span>
                             <span className="text-xs font-mono font-bold text-zinc-900 dark:text-zinc-100">
-                              {Math.max(0, cardCount - students.reduce((acc, s) => acc + (s.credit || 0), 0))}
+                              {isMounted ? Math.max(0, cardCount - students.reduce((acc, s) => acc + (s.credit || 0), 0)) : ''}
                             </span>
                           </div>
                         )}
                         <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">
-                          总计 {cardCount}
+                          总计 {isMounted ? cardCount : ''}
                         </span>
                       </div>
                     </div>
@@ -307,7 +309,7 @@ export const Settings: React.FC = () => {
                       当前爆率 (倍)
                     </label>
                     <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">
-                      {dropRate}x
+                      {isMounted ? dropRate : ''}x
                     </span>
                   </div>
                   <div className="flex gap-3">

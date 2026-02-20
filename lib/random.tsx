@@ -3,7 +3,7 @@
 import { Student } from "./types";
 
 // 获取现有积分卡剩余数量
-export const MaxCredit = typeof window !== 'undefined' ? localStorage.getItem('fishball-cards-count') : null;
+export const getMaxCredit = () => typeof window !== 'undefined' ? localStorage.getItem('fishball-cards-count') : null;
 
 // 生成随机积分卡数量并更新学生积分
 export function generateRandomCredit(
