@@ -181,7 +181,7 @@ export const StudentList: React.FC = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
                     </svg>
                   </div>
-                  <span>抽取积分</span>
+                  <span>抽取积分卡</span>
                 </div>
                 <svg className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
@@ -247,7 +247,7 @@ export const StudentList: React.FC = () => {
                       <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z" />
                     </svg>
                   </div>
-                  <span>积分兑换</span>
+                  <span>积分卡兑换</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs bg-black/10 px-2 py-0.5 rounded-full">{(students.find(s => s.id === selectedStudent.id)?.credit || 0)} 积分</span>

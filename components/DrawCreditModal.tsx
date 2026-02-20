@@ -101,10 +101,10 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({
       <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-zinc-200 dark:border-zinc-800">
         <div className="p-6 text-center">
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-            为 {currentStudent.name} 抽取积分
+            为 {currentStudent.name} 抽取积分卡
           </h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">
-            点击下方按钮随机抽取 1-{dropRate} 积分
+            点击下方按钮随机抽取 1-{dropRate} 积分卡
           </p>
 
           <div className="relative h-32 flex items-center justify-center mb-8">
