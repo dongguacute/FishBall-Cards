@@ -12,22 +12,40 @@ interface DrawCreditModalProps {
   onClose: () => void;
 }
 
-export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ student, isOpen, onClose }) => {
-  const { cardCount, updateCardCount, dropRate, isCardCountSet } = useSettings();
+export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ 
+  student, 
+  isOpen, 
+  onClose
+}) => {
+  const { cardCount, dropRate, isCardCountSet } = useSettings();
   const { updateStudentCredit, students } = useStudents();
+  
+  // 获取最新的学生数据
+  const currentStudent = students.find(s => s.id === student?.id) || student;
+
   const [drawnValue, setDrawnValue] = useState<number | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!isOpen || !student) return null;
+  // 当弹窗打开时，重置状态
+  React.useEffect(() => {
+    if (isOpen) {
+      setDrawnValue(null);
+      setError(null);
+    }
+  }, [isOpen]);
+
+  if (!isOpen || !currentStudent) return null;
 
   const handleDraw = () => {
     if (!isCardCountSet) {
       setError('请先在设置中设置卡片总数');
       return;
     }
+
     setIsDrawing(true);
     setError(null);
+    setDrawnValue(null);
 
     // 计算当前所有学生已领取的积分总和
     const totalUsedCredits = students.reduce((acc, s) => acc + (s.credit || 0), 0);
@@ -37,15 +55,13 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ student, isOpe
     // 模拟抽取动画效果
     setTimeout(() => {
       try {
-        console.log('开始抽奖, cardCount(总):', cardCount, '已用:', totalUsedCredits, '剩余:', actualRemaining, 'dropRate:', dropRate);
         const value = generateRandomCredit(
           1, 
           actualRemaining.toString(), 
-          student, 
+          currentStudent, 
           updateStudentCredit,
           (newRemaining) => {
             // 这里我们不需要更新 cardCount，因为 cardCount 在 settings 中是总数
-            // 但我们需要确保这个逻辑是闭环的
           },
           dropRate
         );
@@ -53,7 +69,6 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ student, isOpe
         if (value === 0) {
           setError('卡没了');
         } else {
-          console.log('抽奖成功, 获得:', value);
           setDrawnValue(value);
         }
       } catch (err: any) {
@@ -76,7 +91,7 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ student, isOpe
       <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-zinc-200 dark:border-zinc-800">
         <div className="p-6 text-center">
           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-            为 {student.name} 抽取积分
+            为 {currentStudent.name} 抽取积分
           </h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">
             点击下方按钮随机抽取 1-{dropRate} 积分
@@ -118,19 +133,19 @@ export const DrawCreditModal: React.FC<DrawCreditModalProps> = ({ student, isOpe
               </button>
             ) : (
               <button
-                onClick={handleClose}
+                onClick={drawnValue !== null ? handleDraw : handleClose}
                 className="w-full py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
               >
-                {error ? '好吧' : '太棒了！'}
+                {error ? '好吧' : '继续抽取'}
               </button>
             )}
             
-            {!isDrawing && drawnValue === null && !error && (
+            {!isDrawing && (
               <button
                 onClick={onClose}
                 className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
               >
-                取消
+                {drawnValue !== null ? '完成' : '取消'}
               </button>
             )}
           </div>

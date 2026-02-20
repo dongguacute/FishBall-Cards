@@ -9,6 +9,8 @@ interface StudentContextType {
   addStudent: (name: string, studentClass: string) => void;
   removeStudent: (id: string) => void;
   updateStudentCredit: (id: string, newCredit: number) => void;
+  updateStudentDrawCount: (id: string, newDrawCount: number) => void;
+  updateStudentPrizeDrawCount: (id: string, newPrizeDrawCount: number) => void;
   resetAllStudentCredits: () => void;
   clearAllData: () => void;
   selectedClass: string;
@@ -92,9 +94,29 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   };
 
+  const updateStudentDrawCount = (id: string, newDrawCount: number) => {
+    setStudents(prev => {
+      const updatedStudents = prev.map(student =>
+        student.id === id ? { ...student, drawCount: newDrawCount } : student
+      );
+      saveStudentsToStorage(updatedStudents);
+      return updatedStudents;
+    });
+  };
+
+  const updateStudentPrizeDrawCount = (id: string, newPrizeDrawCount: number) => {
+    setStudents(prev => {
+      const updatedStudents = prev.map(student =>
+        student.id === id ? { ...student, prizeDrawCount: newPrizeDrawCount } : student
+      );
+      saveStudentsToStorage(updatedStudents);
+      return updatedStudents;
+    });
+  };
+
   const resetAllStudentCredits = () => {
     setStudents(prev => {
-      const updatedStudents = prev.map(student => ({ ...student, credit: 0 }));
+      const updatedStudents = prev.map(student => ({ ...student, credit: 0, drawCount: 0 }));
       saveStudentsToStorage(updatedStudents);
       return updatedStudents;
     });
@@ -115,6 +137,8 @@ export const StudentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     addStudent,
     removeStudent,
     updateStudentCredit,
+    updateStudentDrawCount,
+    updateStudentPrizeDrawCount,
     resetAllStudentCredits,
     clearAllData,
     selectedClass,

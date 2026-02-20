@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { useStudents } from '@/lib/store';
 import { DrawCreditModal } from './DrawCreditModal';
+import { DrawPrizeModal } from './DrawPrizeModal';
+import { GiftPointsModal } from './GiftPointsModal';
 import { ConfirmModal } from './ConfirmModal';
 import { Exchange } from './Exchange';
 import { Student } from '@/lib/types';
@@ -11,6 +13,10 @@ export const StudentList: React.FC = () => {
   const { students, selectedClass, setSelectedClass, filteredStudents, removeStudent } = useStudents();
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isDrawModalOpen, setIsDrawModalOpen] = useState(false);
+  const [isDrawPrizeModalOpen, setIsDrawPrizeModalOpen] = useState(false);
+  const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
+  const [drawChances, setDrawChances] = useState(1);
+  const [drawPrizeChances, setDrawPrizeChances] = useState(1);
   const [isExchangeOpen, setIsExchangeOpen] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -33,6 +39,33 @@ export const StudentList: React.FC = () => {
   const handleStartDraw = () => {
     setIsActionModalOpen(false);
     setIsDrawModalOpen(true);
+  };
+
+  const handleStartDrawPrize = () => {
+    setIsActionModalOpen(false);
+    setDrawPrizeChances(1);
+    setIsDrawPrizeModalOpen(true);
+  };
+
+  const handleStartGift = () => {
+    setIsActionModalOpen(false);
+    setIsGiftModalOpen(true);
+  };
+
+  const handleGiftSuccess = (chances: number) => {
+    setIsGiftModalOpen(false);
+    // 强制更新选中的学生状态，确保后续弹窗拿到最新数据
+    if (selectedStudent) {
+      const updatedStudent = students.find(s => s.id === selectedStudent.id);
+      if (updatedStudent) {
+        setSelectedStudent(updatedStudent);
+      }
+    }
+    setDrawPrizeChances(chances);
+    // 延迟打开抽奖弹窗，避免状态更新冲突
+    setTimeout(() => {
+      setIsDrawPrizeModalOpen(true);
+    }, 100);
   };
 
   const handleStartExchange = () => {
@@ -139,6 +172,54 @@ export const StudentList: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                 </svg>
               </button>
+
+              <button
+                onClick={handleStartDrawPrize}
+                className="flex items-center justify-between px-6 py-4 bg-purple-600 text-white rounded-2xl font-bold hover:bg-purple-700 active:scale-[0.98] transition-all group shadow-lg shadow-purple-600/20 disabled:opacity-50 disabled:grayscale disabled:active:scale-100"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-white/20">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clipRule="evenodd" />
+                      <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z" />
+                    </svg>
+                  </div>
+                  <div className="text-left">
+                    <p>抽取奖励</p>
+                    <p className="text-[10px] font-normal opacity-80">剩余: {(students.find(s => s.id === selectedStudent.id)?.prizeDrawCount || 0)} 次</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {(students.find(s => s.id === selectedStudent.id)?.prizeDrawCount || 0) === 0 && <span className="text-[10px] bg-black/20 px-2 py-0.5 rounded-full">需送分获取</span>}
+                  <svg className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </button>
+
+              <button
+                onClick={handleStartGift}
+                disabled={(students.find(s => s.id === selectedStudent.id)?.credit || 0) < 1}
+                className="flex items-center justify-between px-6 py-4 bg-pink-500 text-white rounded-2xl font-bold hover:bg-pink-600 active:scale-[0.98] transition-all group shadow-lg shadow-pink-500/20 disabled:opacity-50 disabled:grayscale disabled:active:scale-100"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-white/20">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="text-left">
+                    <p>送礼物</p>
+                    <p className="text-[10px] font-normal opacity-80">送1分得2次抽奖</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {(students.find(s => s.id === selectedStudent.id)?.credit || 0) < 1 && <span className="text-[10px] bg-black/20 px-2 py-0.5 rounded-full">积分不足</span>}
+                  <svg className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </button>
               
               <button
                 onClick={handleStartExchange}
@@ -154,7 +235,7 @@ export const StudentList: React.FC = () => {
                   <span>积分兑换</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs bg-black/10 px-2 py-0.5 rounded-full">{selectedStudent.credit || 0} 积分</span>
+                  <span className="text-xs bg-black/10 px-2 py-0.5 rounded-full">{(students.find(s => s.id === selectedStudent.id)?.credit || 0)} 积分</span>
                   <svg className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                   </svg>
@@ -175,7 +256,7 @@ export const StudentList: React.FC = () => {
       {isExchangeOpen && selectedStudent && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsExchangeOpen(false)} />
-          <div className="relative w-full max-w-5xl max-h-[90vh] bg-white dark:bg-black rounded-3xl shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 animate-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-5xl max-h-[90vh] bg-white dark:bg-black rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-zinc-200 dark:border-zinc-800 animate-in zoom-in-95 duration-200">
             <button 
               onClick={() => setIsExchangeOpen(false)}
               className="absolute top-6 right-6 z-[70] p-2 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-500 hover:text-black dark:hover:text-white transition-colors"
@@ -184,7 +265,7 @@ export const StudentList: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <div className="overflow-y-auto h-full">
+            <div className="flex-1 overflow-y-auto">
               <Exchange student={selectedStudent} />
             </div>
           </div>
@@ -262,6 +343,22 @@ export const StudentList: React.FC = () => {
         isOpen={isDrawModalOpen}
         student={selectedStudent}
         onClose={() => setIsDrawModalOpen(false)}
+      />
+
+      {/* 抽取奖励弹窗 */}
+      <DrawPrizeModal
+        isOpen={isDrawPrizeModalOpen}
+        student={selectedStudent}
+        onClose={() => setIsDrawPrizeModalOpen(false)}
+        initialDrawChances={drawPrizeChances}
+      />
+
+      {/* 送礼物弹窗 */}
+      <GiftPointsModal
+        isOpen={isGiftModalOpen}
+        fromStudent={selectedStudent}
+        onClose={() => setIsGiftModalOpen(false)}
+        onGiftSuccess={handleGiftSuccess}
       />
 
       {/* 删除确认弹窗 */}

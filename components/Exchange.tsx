@@ -7,6 +7,7 @@ import {
   getAvailablePrizes, 
   getStudentRewards, 
   buyPrize, 
+  useReward,
   StudentReward 
 } from "@/lib/exchange";
 
@@ -15,7 +16,11 @@ interface ExchangeProps {
 }
 
 export const Exchange: React.FC<ExchangeProps> = ({ student }) => {
-  const { updateStudentCredit } = useStudents();
+  const { updateStudentCredit, students } = useStudents();
+  
+  // 获取最新的学生数据
+  const currentStudent = students.find(s => s.id === student.id) || student;
+
   const [studentRewards, setStudentRewards] = useState<StudentReward[]>([]);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' | null }>({ text: '', type: null });
 
@@ -23,7 +28,7 @@ export const Exchange: React.FC<ExchangeProps> = ({ student }) => {
   const loadRewards = () => {
     const allRewards = getStudentRewards();
     // 过滤出当前学生的奖励
-    setStudentRewards(allRewards.filter(r => r.studentId === student.id));
+    setStudentRewards(allRewards.filter(r => r.studentId === currentStudent.id));
   };
 
   useEffect(() => {
@@ -40,10 +45,10 @@ export const Exchange: React.FC<ExchangeProps> = ({ student }) => {
       window.removeEventListener('storage-settings-updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
     };
-  }, [student.id]);
+  }, [currentStudent.id]);
 
   const handleBuy = (prizeId: string) => {
-    const result = buyPrize(student.id, prizeId, (sId, newCredit) => {
+    const result = buyPrize(currentStudent.id, prizeId, (sId, newCredit) => {
       // 同步更新全局 store 中的学生积分
       updateStudentCredit(sId, newCredit);
     });
@@ -58,6 +63,13 @@ export const Exchange: React.FC<ExchangeProps> = ({ student }) => {
     setTimeout(() => setMessage({ text: '', type: null }), 3000);
   };
 
+  const handleUseReward = (rewardId: string) => {
+    const result = useReward(rewardId);
+    if (result.success) {
+      loadRewards();
+    }
+  };
+
   const availablePrizes = getAvailablePrizes();
 
   return (
@@ -67,10 +79,10 @@ export const Exchange: React.FC<ExchangeProps> = ({ student }) => {
         <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-black dark:text-white">
-              {student.name} 的兑换中心
+              {currentStudent.name} 的兑换中心
             </h1>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              班级：{student.class}
+              班级：{currentStudent.class}
             </p>
           </div>
           <div className="flex flex-col items-start sm:items-end">
@@ -80,7 +92,7 @@ export const Exchange: React.FC<ExchangeProps> = ({ student }) => {
             <div className="px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 shadow-[0_0_6px_rgba(250,204,21,0.6)]" />
               <span className="text-xl font-bold text-black dark:text-white font-mono">
-                {student.credit || 0}
+                {currentStudent.credit || 0}
               </span>
             </div>
           </div>
@@ -162,21 +174,42 @@ export const Exchange: React.FC<ExchangeProps> = ({ student }) => {
                 [...studentRewards].reverse().map((reward) => (
                   <div 
                     key={reward.id}
-                    className="p-3 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm flex items-center gap-3 animate-in fade-in slide-in-from-right-4 duration-500"
+                    className={`p-3 rounded-xl border shadow-sm flex items-center gap-3 animate-in fade-in slide-in-from-right-4 duration-500 transition-all ${
+                      reward.used 
+                        ? 'border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 opacity-60' 
+                        : 'border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950'
+                    }`}
                   >
-                    <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      reward.used 
+                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400' 
+                        : 'bg-blue-50 dark:bg-blue-900/30 text-blue-500'
+                    }`}>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-black dark:text-white truncate">
+                      <p className={`text-xs font-bold truncate ${
+                        reward.used ? 'text-zinc-500 line-through' : 'text-black dark:text-white'
+                      }`}>
                         {reward.prizeName}
                       </p>
                       <p className="text-[9px] text-zinc-400 font-mono mt-0.5">
                         {new Date(reward.purchaseDate).toLocaleString()}
                       </p>
                     </div>
+                    {!reward.used && (
+                      <button
+                        onClick={() => handleUseReward(reward.id)}
+                        className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 hover:text-green-500 transition-colors"
+                        title="标记为已使用"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 ))
               ) : (
