@@ -1,17 +1,63 @@
 "use client";
 
 import React, { useState } from "react";
-import { useSettings } from "@/lib/settings";
+import { useSettings, Prize } from "@/lib/settings";
 import { useStudents } from "@/lib/store";
 
 export const Settings: React.FC = () => {
-  const { isDarkMode, toggleDarkMode, cardCount, setCardCount, isCardCountSet, dropRate, setDropRate, resetSettings } = useSettings();
+  const { 
+    isDarkMode, 
+    toggleDarkMode, 
+    cardCount, 
+    setCardCount, 
+    isCardCountSet, 
+    dropRate, 
+    setDropRate, 
+    prizes,
+    addPrize,
+    removePrize,
+    updatePrize,
+    clearPrizes,
+    resetSettings 
+  } = useSettings();
   const { students, resetAllStudentCredits } = useStudents();
   const [inputValue, setInputValue] = useState<string>(cardCount.toString());
   const [dropRateValue, setDropRateValue] = useState<string>(dropRate.toString());
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingDropRate, setIsSavingDropRate] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  // 奖品编辑状态
+  const [newPrizeName, setNewPrizeName] = useState("");
+  const [newPrizePrice, setNewPrizePrice] = useState("");
+  const [editingPrizeId, setEditingPrizeId] = useState<string | null>(null);
+  const [editPrizeName, setEditPrizeName] = useState("");
+  const [editPrizePrice, setEditPrizePrice] = useState("");
+
+  const handleAddPrize = () => {
+    const price = parseInt(newPrizePrice, 10);
+    if (newPrizeName.trim() && !isNaN(price) && price >= 0) {
+      addPrize(newPrizeName.trim(), price);
+      setNewPrizeName("");
+      setNewPrizePrice("");
+    }
+  };
+
+  const handleStartEdit = (prize: Prize) => {
+    setEditingPrizeId(prize.id);
+    setEditPrizeName(prize.name);
+    setEditPrizePrice(prize.price.toString());
+  };
+
+  const handleSaveEdit = () => {
+    if (editingPrizeId) {
+      const price = parseInt(editPrizePrice, 10);
+      if (editPrizeName.trim() && !isNaN(price) && price >= 0) {
+        updatePrize(editingPrizeId, editPrizeName.trim(), price);
+        setEditingPrizeId(null);
+      }
+    }
+  };
 
   // 锁定逻辑：只要设置过一次就被锁定
   const isLocked = isCardCountSet;
@@ -318,6 +364,140 @@ export const Settings: React.FC = () => {
                     </button>
                   </div>
                 </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Prize Settings Section */}
+          <section className="border-t border-zinc-200 dark:border-zinc-800 pt-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div>
+                <h2 className="text-sm font-medium text-black dark:text-white uppercase tracking-wider">
+                  奖品管理
+                </h2>
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                  添加和管理可兑换的奖品及其所需积分。
+                </p>
+              </div>
+              <div className="md:col-span-2 space-y-6">
+                {/* Add Prize Form */}
+                <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">奖品名称</label>
+                      <input
+                        type="text"
+                        value={newPrizeName}
+                        onChange={(e) => setNewPrizeName(e.target.value)}
+                        placeholder="例如：棒棒糖"
+                        className="w-full h-10 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">所需积分</label>
+                      <input
+                        type="number"
+                        value={newPrizePrice}
+                        onChange={(e) => setNewPrizePrice(e.target.value)}
+                        placeholder="所需积分"
+                        className="w-full h-10 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleAddPrize}
+                    disabled={!newPrizeName.trim() || !newPrizePrice}
+                    className="w-full py-2 rounded-lg text-sm font-medium bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    添加奖品
+                  </button>
+                </div>
+
+                {/* Prize List */}
+                <div className="space-y-3">
+                  {prizes.length > 0 ? (
+                    prizes.map((prize) => (
+                      <div
+                        key={prize.id}
+                        className="flex items-center justify-between p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm"
+                      >
+                        {editingPrizeId === prize.id ? (
+                          <div className="flex-1 flex gap-2 mr-2">
+                            <input
+                              type="text"
+                              value={editPrizeName}
+                              onChange={(e) => setEditPrizeName(e.target.value)}
+                              className="flex-1 h-8 px-2 rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-xs"
+                            />
+                            <input
+                              type="number"
+                              value={editPrizePrice}
+                              onChange={(e) => setEditPrizePrice(e.target.value)}
+                              className="w-20 h-8 px-2 rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-xs"
+                            />
+                            <button
+                              onClick={handleSaveEdit}
+                              className="p-1.5 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => setEditingPrizeId(null)}
+                              className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-black dark:text-white">{prize.name}</span>
+                              <span className="text-xs text-zinc-500 dark:text-zinc-400">{prize.price} 积分</span>
+                            </div>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => handleStartEdit(prize)}
+                                className="p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => removePrize(prize.id)}
+                                className="p-2 text-zinc-400 hover:text-red-500 transition-colors"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 border-2 border-dashed border-zinc-100 dark:border-zinc-900 rounded-xl">
+                      <p className="text-sm text-zinc-400">暂无奖品，请在上方添加。</p>
+                    </div>
+                  )}
+                </div>
+
+                {prizes.length > 0 && (
+                  <button
+                    onClick={clearPrizes}
+                    className="text-xs text-zinc-400 hover:text-red-500 transition-colors flex items-center gap-1 mx-auto"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    清除所有奖品
+                  </button>
+                )}
               </div>
             </div>
           </section>

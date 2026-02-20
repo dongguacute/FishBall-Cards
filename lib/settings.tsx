@@ -18,7 +18,20 @@ interface SettingsContextType {
   dropRate: number;
   setDropRate: (rate: number) => void;
 
+  // 奖品管理
+  prizes: Prize[];
+  addPrize: (name: string, price: number) => void;
+  removePrize: (id: string) => void;
+  updatePrize: (id: string, name: string, price: number) => void;
+  clearPrizes: () => void;
+
   resetSettings: () => void;
+}
+
+export interface Prize {
+  id: string;
+  name: string;
+  price: number;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -50,6 +63,7 @@ const getCookie = (name: string): string | null => {
 const CARD_COUNT_STORAGE_KEY = 'fishball-cards-count';
 const IS_CARD_COUNT_SET_KEY = 'fishball-cards-count-set';
 const DROP_RATE_STORAGE_KEY = 'fishball-drop-rate';
+const PRIZES_STORAGE_KEY = 'fishball-prizes';
 
 // 加载明暗模式设置
 const loadDarkModeFromCookie = (): boolean => {
@@ -116,17 +130,42 @@ const saveDropRateToStorage = (rate: number) => {
   }
 };
 
+// 加载奖品列表
+const loadPrizesFromStorage = (): Prize[] => {
+  try {
+    const stored = localStorage.getItem(PRIZES_STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('加载奖品列表失败:', error);
+  }
+  return [];
+};
+
+// 保存奖品列表
+const savePrizesToStorage = (prizes: Prize[]) => {
+  try {
+    localStorage.setItem(PRIZES_STORAGE_KEY, JSON.stringify(prizes));
+  } catch (error) {
+    console.error('保存奖品列表失败:', error);
+  }
+};
+
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [cardCount, setCardCountState] = useState<number>(10);
   const [isCardCountSet, setIsCardCountSet] = useState<boolean>(false);
   const [dropRate, setDropRateState] = useState<number>(30);
+  const [prizes, setPrizesState] = useState<Prize[]>([]);
 
   const handleStorageUpdate = () => {
     const count = loadCardCountFromStorage();
     setCardCountState(count <= 0 ? 10 : count);
     const rate = loadDropRateFromStorage();
     setDropRateState(rate);
+    const storedPrizes = loadPrizesFromStorage();
+    setPrizesState(storedPrizes);
   };
 
   // 初始化设置
@@ -135,6 +174,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const count = loadCardCountFromStorage();
     const isSet = localStorage.getItem(IS_CARD_COUNT_SET_KEY) === 'true';
     const rate = loadDropRateFromStorage();
+    const storedPrizes = loadPrizesFromStorage();
 
     setIsDarkMode(darkMode);
     // 初始化时，如果卡片数量为 0 或 -1，强制设为 10
@@ -142,6 +182,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setCardCountState(finalCount);
     setIsCardCountSet(isSet);
     setDropRateState(rate);
+    setPrizesState(storedPrizes);
 
     // 如果初始化发现是非法值，且已经设置过，同步回存储
     if (isSet && count <= 0) {
@@ -209,13 +250,51 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  // 添加奖品
+  const addPrize = (name: string, price: number) => {
+    const newPrize: Prize = {
+      id: Math.random().toString(36).substring(2, 9),
+      name,
+      price,
+    };
+    const newPrizes = [...prizes, newPrize];
+    setPrizesState(newPrizes);
+    savePrizesToStorage(newPrizes);
+    window.dispatchEvent(new Event('storage-settings-updated'));
+  };
+
+  // 删除奖品
+  const removePrize = (id: string) => {
+    const newPrizes = prizes.filter(p => p.id !== id);
+    setPrizesState(newPrizes);
+    savePrizesToStorage(newPrizes);
+    window.dispatchEvent(new Event('storage-settings-updated'));
+  };
+
+  // 更新奖品
+  const updatePrize = (id: string, name: string, price: number) => {
+    const newPrizes = prizes.map(p => p.id === id ? { ...p, name, price } : p);
+    setPrizesState(newPrizes);
+    savePrizesToStorage(newPrizes);
+    window.dispatchEvent(new Event('storage-settings-updated'));
+  };
+
+  // 清除所有奖品
+  const clearPrizes = () => {
+    setPrizesState([]);
+    savePrizesToStorage([]);
+    window.dispatchEvent(new Event('storage-settings-updated'));
+  };
+
   const resetSettings = () => {
     setCardCountState(10);
     setIsCardCountSet(false);
     setDropRateState(1);
+    setPrizesState([]);
     localStorage.removeItem(CARD_COUNT_STORAGE_KEY);
     localStorage.removeItem(IS_CARD_COUNT_SET_KEY);
     localStorage.removeItem(DROP_RATE_STORAGE_KEY);
+    localStorage.removeItem(PRIZES_STORAGE_KEY);
   };
 
   const value = {
@@ -227,6 +306,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     isCardCountSet,
     dropRate,
     setDropRate,
+    prizes,
+    addPrize,
+    removePrize,
+    updatePrize,
+    clearPrizes,
     resetSettings,
   };
 
