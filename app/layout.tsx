@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   title: "FishBall-Cards",
   description: "FishBall-Cards is a campus-based learning incentive platform designed for Chinese schools",
   manifest: "/manifest.json",
+  themeColor: "#ffffff",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
