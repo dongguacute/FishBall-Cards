@@ -10,7 +10,7 @@ import { Exchange } from './Exchange';
 import { Student } from '@/lib/types';
 
 export const StudentList: React.FC = () => {
-  const { students, selectedClass, setSelectedClass, filteredStudents, removeStudent } = useStudents();
+  const { students, selectedClass, setSelectedClass, filteredStudents, removeStudent, updateStudentCredit } = useStudents();
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isDrawModalOpen, setIsDrawModalOpen] = useState(false);
   const [isDrawPrizeModalOpen, setIsDrawPrizeModalOpen] = useState(false);
@@ -19,6 +19,8 @@ export const StudentList: React.FC = () => {
   const [drawPrizeChances, setDrawPrizeChances] = useState(1);
   const [isExchangeOpen, setIsExchangeOpen] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [isAddPointsModalOpen, setIsAddPointsModalOpen] = useState(false);
+  const [pointsToAdd, setPointsToAdd] = useState(1);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,6 +73,18 @@ export const StudentList: React.FC = () => {
   const handleStartExchange = () => {
     setIsActionModalOpen(false);
     setIsExchangeOpen(true);
+  };
+
+  const handleAddPoints = () => {
+    if (selectedStudent) {
+      const currentCredit = selectedStudent.credit || 0;
+      updateStudentCredit(selectedStudent.id, currentCredit + pointsToAdd);
+      setIsAddPointsModalOpen(false);
+      setPointsToAdd(1);
+      // 更新本地状态以反映变化
+      const updatedStudent = { ...selectedStudent, credit: currentCredit + pointsToAdd };
+      setSelectedStudent(updatedStudent);
+    }
   };
 
   return (
@@ -241,6 +255,26 @@ export const StudentList: React.FC = () => {
                   </svg>
                 </div>
               </button>
+
+              <button
+                onClick={() => {
+                  setIsActionModalOpen(false);
+                  setIsAddPointsModalOpen(true);
+                }}
+                className="flex items-center justify-between px-6 py-4 bg-blue-500 text-white rounded-2xl font-bold hover:bg-blue-600 active:scale-[0.98] transition-all group shadow-lg shadow-blue-500/20"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-white/20">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                  <span>直接加分</span>
+                </div>
+                <svg className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
             </div>
             <button 
               onClick={() => setIsActionModalOpen(false)}
@@ -267,6 +301,68 @@ export const StudentList: React.FC = () => {
             </button>
             <div className="flex-1 overflow-y-auto">
               <Exchange student={selectedStudent} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 直接加分弹窗 */}
+      {isAddPointsModalOpen && selectedStudent && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsAddPointsModalOpen(false)} />
+          <div className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 animate-in zoom-in-95 duration-200 p-8">
+            <div className="text-center mb-8">
+              <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">给 {selectedStudent.name} 加分</h3>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">请输入要添加的积分数量</p>
+            </div>
+            
+            <div className="flex items-center justify-center gap-6 mb-8">
+              <button 
+                onClick={() => setPointsToAdd(Math.max(1, pointsToAdd - 1))}
+                className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-2xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+              >
+                -
+              </button>
+              <div className="text-4xl font-bold text-zinc-900 dark:text-zinc-100 w-16 text-center">
+                {pointsToAdd}
+              </div>
+              <button 
+                onClick={() => setPointsToAdd(pointsToAdd + 1)}
+                className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-2xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+              >
+                +
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 mb-8">
+              {[1, 5, 10, 20, 50, 100].map(val => (
+                <button
+                  key={val}
+                  onClick={() => setPointsToAdd(val)}
+                  className={`py-2 rounded-xl text-sm font-medium transition-all ${
+                    pointsToAdd === val 
+                      ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' 
+                      : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                  }`}
+                >
+                  +{val}
+                </button>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={handleAddPoints}
+                className="w-full py-4 bg-blue-500 text-white rounded-2xl font-bold hover:bg-blue-600 active:scale-[0.98] transition-all shadow-lg shadow-blue-500/20"
+              >
+                确认添加
+              </button>
+              <button 
+                onClick={() => setIsAddPointsModalOpen(false)}
+                className="w-full py-3 text-sm text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 transition-colors"
+              >
+                取消
+              </button>
             </div>
           </div>
         </div>
